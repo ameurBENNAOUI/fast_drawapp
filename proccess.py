@@ -69,18 +69,18 @@ def check_file(db,url_path):
 
 
         alpha=7
-        converter_pdf(path_source,pdffilename,file_300,imgfilename,300)
+        converter_pdf(path_source,pdffilename,file_300,file_name,300)
 
-        resizer_img(file_300, imgfilename, file_200, imgfilename, alpha)
-        file_name_img=file_200+imgfilename
+        resizer_img(file_300, file_name, file_200, file_name, alpha)
+        file_name_img=file_200+file_name
         image = cv2.imread(file_name_img)
        
         # db
         path_main="./static/"
         rect0, name0 = found_rectlogo(db,path_main,image, file_name, alpha)
-        # cv2.imwrite("./","0000.jpg", rect0)
+        # cv2.imwrite("0000.jpg", rect0)
         # db
-        text_extract= get_data(db,"./static/",rect0, name0,url_path)
+        text_extract= get_data(db,path_main,rect0, name0,url_path)
         
         result = db.query(models.PdfInfo).filter(models.PdfInfo.url==url_path).first()
         result.extracted_data=text_extract

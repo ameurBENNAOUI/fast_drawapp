@@ -20,9 +20,7 @@ import wget
 
 
 #------------------------------------------------
-#time.sleep(1)
 print("Procceing......")
-#try:
 try:
     result = db.query(models.PdfInfo).filter(models.PdfInfo.status ==None)
     result = db.query(models.PdfInfo)
@@ -31,7 +29,6 @@ except:
     print('error')
 #        continue
 for row in result :
-    row=result[0]
     r=db.query(models.PdfInfo).filter(models.PdfInfo.id ==row.id).first()
     r.status="In Proccess"
     db.commit()
@@ -48,17 +45,3 @@ for row in result :
         result = db.query(models.PdfInfo).filter(models.PdfInfo.url==url_path).first()
         result.status="Failed"
         db.commit()
-#except KeyboardInterrupt:
-#        break
-
-
-
-
-
-#  import json
-
-#             text_extract = json.loads(text_extract)
-
-#             title=mstext_extractg['text'][0]["Title"]
-#             drawing=text_extract['text'][0]["drawingN"]
-#             revsion = text_extract['text'][0]["revsion"]

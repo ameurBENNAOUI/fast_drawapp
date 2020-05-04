@@ -354,7 +354,7 @@ def ocr(image,path_main,psm):
         text = pytesseract.image_to_string(Image.open(path_main+'/'+str(filename)),lang='eng', config=tessdata_dir_config)
         return text
 
-def get_data(db,path_main,image,name0,url_path,ds=0):
+def get_data(db,path_main,rect0,name0,file_name,ds=0):
         profile_ocr={}
         profile_ocr['text']=[]
         profile_ocr['text'].append({}) 
@@ -362,8 +362,8 @@ def get_data(db,path_main,image,name0,url_path,ds=0):
         # # path_json = os.path.join(path_main, "rlogo/")
         # path_logo = os.path.join(path_main, "template_cropped_img_300/")
         # path_img = os.path.join(path_main, "template_cropped_img_300/")
-        image_path=path_main+"queues_pdf_cropped/"+url_path.replace(".pdf",".jpg")
-        status = cv2.imwrite(image_path,image)
+        image_path=path_main+"queues_pdf_cropped/"+file_name.replace(".pdf",".jpg")
+        status = cv2.imwrite(image_path,rect0)
         # print("Image written to file-system : ",status)
         
         # file_json=name0.replace('jpg','json')
@@ -376,11 +376,9 @@ def get_data(db,path_main,image,name0,url_path,ds=0):
 
 
         w0,h0=logo.shape[:2]        
-        w1,h1=image.shape[:2]
+        w1,h1=rect0.shape[:2]
         scale_w=(w1/w0)
         scale_h=(h1/h0)
-        
-        
 
         result = db.query(models.Template).filter(models.Template.template_path==name0).first()
         print(name0,"rrrrrrrr")
@@ -398,25 +396,33 @@ def get_data(db,path_main,image,name0,url_path,ds=0):
         x_start,y_start,x_end,y_end,rotate=get_rect_2(label,scale_h,scale_w) 
         ra_logo = Rectangle(x_start,y_start,x_end,y_end)
         title_text=text_field(ra_logo,rwd_list)
-        print('title_text=',title_text)
-        img_title=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
-        cv2.imwrite(path_main+'/title.jpg',img_title)
+        
+        
+        cv2.rectangle(rect0, (int(x_start*scale_w), int(y_start*scale_h+ds)), (int(x_end*scale_w), int(y_end*scale_h)), (0, 0, 255), 2)
+       
+        # print('title_text=',title_text)
+        # img_title=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
+        # cv2.imwrite(path_main+'/title.jpg',img_title)
 
         label=data['drawing_number']  
         x_start,y_start,x_end,y_end,rotate=get_rect_2(label,scale_h,scale_w) 
         ra_logo = Rectangle(x_start,y_start,x_end,y_end)
         drawingN_text=text_field(ra_logo,rwd_list)
         print('img_drawingN=',drawingN_text)
-        img_drawingN=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
-        cv2.imwrite(path_main+'/drawing_number.jpg',img_drawingN)
+        cv2.rectangle(rect0, (int(x_start*scale_w), int(y_start*scale_h+ds)), (int(x_end*scale_w), int(y_end*scale_h)), (0, 255, 0), 2)
+
+        # img_drawingN=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
+        # cv2.imwrite(path_main+'/drawing_number.jpg',img_drawingN)
         
         label=data['revision']
         x_start,y_start,x_end,y_end,rotate=get_rect_2(label,scale_h,scale_w) 
         ra_logo = Rectangle(x_start,y_start,x_end,y_end)
         revsion_text=text_field(ra_logo,rwd_list)
         print('revsion =',revsion_text)
-        img_revsion=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
-        cv2.imwrite(path_main+'/revision.jpg',img_revsion)
+        cv2.rectangle(rect0, (int(x_start*scale_w), int(y_start*scale_h+ds)), (int(x_end*scale_w), int(y_end*scale_h)), (255, 0, 0), 2)
+
+        # img_revsion=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
+        # cv2.imwrite(path_main+'/revision.jpg',img_revsion)
 
 
         label=data['project_name']
@@ -424,9 +430,14 @@ def get_data(db,path_main,image,name0,url_path,ds=0):
         ra_logo = Rectangle(x_start,y_start,x_end,y_end)
         project_name_text=text_field(ra_logo,rwd_list)
         print('project_name =',project_name_text)
-        project_name=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
-        cv2.imwrite(path_main+'/project_name.jpg',project_name)      
+        cv2.rectangle(rect0, (int(x_start*scale_w), int(y_start*scale_h+ds)), (int(x_end*scale_w), int(y_end*scale_h)), (0, 255, 255), 2)
+
+        # project_name=image[int(y_start*scale_h+ds):int(y_end*scale_h),int(x_start*scale_w):int(x_end*scale_w)]
+        # cv2.imwrite(path_main+'/project_name.jpg',project_name)      
         
+        
+        
+        cv2.imwrite('main.jpg',rect0)
         profile_ocr['text'][0]['Title']=title_text
         profile_ocr['text'][0]['drawingN']=drawingN_text
         profile_ocr['text'][0]['revsion']=revsion_text
