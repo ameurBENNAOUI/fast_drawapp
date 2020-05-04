@@ -31,7 +31,6 @@ except:
     print('error')
 #        continue
 for row in result :
-    row=result[0]
     r=db.query(models.PdfInfo).filter(models.PdfInfo.id ==row.id).first()
     r.status="In Proccess"
     db.commit()
