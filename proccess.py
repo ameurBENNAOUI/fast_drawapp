@@ -64,7 +64,7 @@ def check_file(db,url_path):
 
         file_300="static/check_convert_300/"
         file_200="static/check_convert_200/"
-        imgfilename=pdffilename.replace(".pdf",".jpg")
+        file_name=pdffilename.replace(".pdf",".jpg")
 
 
 
@@ -73,10 +73,11 @@ def check_file(db,url_path):
 
         resizer_img(file_300, imgfilename, file_200, imgfilename, alpha)
         file_name_img=file_200+imgfilename
-        img_rgb = cv2.imread(file_name_img)
+        image = cv2.imread(file_name_img)
        
         # db
-        rect0, name0 = found_rectlogo(db,"./static/",img_rgb, imgfilename, alpha)
+        path_main="./static/"
+        rect0, name0 = found_rectlogo(db,path_main,image, file_name, alpha)
         # cv2.imwrite("./","0000.jpg", rect0)
         # db
         text_extract= get_data(db,"./static/",rect0, name0,url_path)

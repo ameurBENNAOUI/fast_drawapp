@@ -22,7 +22,8 @@ import os
 import cv2
 import numpy as np
 import os
-from scipy.misc import imread, imshow, imsave
+import imageio
+#from scipy.misc import imread, imshow, imsave
 from scipy.ndimage import rotate
 import json
 import pytesseract
@@ -116,6 +117,7 @@ def converter_pdf(path_source,pdffilename,path_destination,imgfilename,dpi):
     return image_name
 
 def found_rectlogo(db,path_main,image,file_name,alpha):
+    
     path=os.path.join(path_main,"template_cropped_img_200/")
     count=0
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -132,27 +134,41 @@ def found_rectlogo(db,path_main,image,file_name,alpha):
 #    	print(template_path)
 #    	template_source = cv2.imread(template_path)
         im1=Image.open(template_path)
-        im2=im1.rotate(-90, expand=1)
+        im2=im1.rotate(270, expand=1)
+        im1=Image.open(template_path)
+        im3=im1.rotate(90, expand=1)
 
 #    	template_source = cv2.imread(template_path)
         template = np.array(im1)
-        template90= np.array(im2)
+        template270= np.array(im2)
+        template90= np.array(im3)
+
         template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         template = cv2.Canny(template_gray, 50, 200)
         (tH, tW) = template.shape[:2]
 
         (h, w) = (tH, tW)
+        
         center = (w / 2, h / 2)
-        angle90 =270
+        
+        angle90 =90
         scale = 1.0
         template_gray90 = cv2.cvtColor(template90, cv2.COLOR_BGR2GRAY)
-
         (tH90, tW90) = template90.shape[:2]
+        
+
+        angle270 =270
+        scale = 1.0
+        template_gray270 = cv2.cvtColor(template270, cv2.COLOR_BGR2GRAY)
+        (tH270, tW270) = template270.shape[:2]
+        
         template90 = cv2.Canny(template_gray90, 50, 200)
+        template270 = cv2.Canny(template_gray270, 50, 200)
+
         # cv2.imshow('images', template90)
 
         for scale in np.linspace(0.2, 1.0,20)[::-1]:
-            print('scale  ',scale)
+            #print('scale  ',scale)
             resized = imutils.resize(gray, width = int(gray.shape[1] * scale))
             r = gray.shape[1] / float(resized.shape[1])
             edged = cv2.Canny(resized, 50, 200)
@@ -163,38 +179,58 @@ def found_rectlogo(db,path_main,image,file_name,alpha):
                 result = cv2.matchTemplate(edged, template, cv2.TM_CCOEFF)
                 (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
 
-                print('maxval ===', maxVal)
+                #print('maxval ===', maxVal)
                 if found is None or maxVal > found[0]:
                                 found = (maxVal, maxLoc, r,tH, tW,name,rotate)
-                                # print('maxval=', maxVal)
-                                # print('name=', name)
+                           
+                            
+                            
+
             if resized.shape[0] < tH90 or resized.shape[1] < tW90:
-                continue
-            result = cv2.matchTemplate(edged, template90, cv2.TM_CCOEFF)
-            (_, maxVal90, _, maxLoc90) = cv2.minMaxLoc(result)
+                pass
+            else:
+                result = cv2.matchTemplate(edged, template90, cv2.TM_CCOEFF)
+                (_, maxVal90, _, maxLoc90) = cv2.minMaxLoc(result)
+    
+                #print('maxval 270==', maxVal270)
+                if  found is None or  maxVal90 > found[0]:
+                    rotate=2
+                    found = (maxVal90, maxLoc90, r,tH90, tW90,name,rotate)
+                    
+                    
+                    
+            if resized.shape[0] < tH270 or resized.shape[1] < tW270:
+                pass
+            else:
+                result = cv2.matchTemplate(edged, template270, cv2.TM_CCOEFF)
+                (_, maxVal270, _, maxLoc270) = cv2.minMaxLoc(result)
+    
+                #print('maxval 270==', maxVal270)
+                if  found is None or  maxVal270 > found[0]:
+                    rotate=1
+                    found = (maxVal270, maxLoc270, r,tH270, tW270,name,rotate)
+            # print('print val max=',found[0])
+            # print('print name=',found[5])
+            # print('print name=',found[6])
 
 
-            print('maxval 90==', maxVal90)
-            if maxVal90 > found[0]:
-                rotate=1
-                found = (maxVal90, maxLoc90, r,tH90, tW90,name,rotate)
-                # print('maxval 90=', maxVal90)
-                # print('name 90=', name)
-            print('print val max=',found[0])
-                        
+
+     
+
 #################################################################################
 #
 ################################################################################    
 
-    (_, maxLoc, r,tH, tW,name,rotate) = found
+    (maxVal, maxLoc, r,tH, tW,name,rotate) = found
     (startX, startY) = (int(maxLoc[0] * r), int(maxLoc[1] * r))
     (endX, endY) = (int((maxLoc[0] + tW) * r), int((maxLoc[1] + tH) * r))
-    print('max==',maxVal) 
+    # print('max==',maxVal) 
         # draw a bounding box around the detected result and display the image
     rect=image[startY:endY,startX:endX]
 #    cv2.imwrite('./rect0/{}'.format(name),rect)
 #     cv2.imshow('images',rect0)
     cv2.rectangle(image, (startX, startY), (endX, endY), (0, 0, 255), 2)
+    cv2.imwrite('./{}'.format(name),image)
     rect=image[startY:endY,startX:endX]
     path0=os.path.join(path_main,"check_convert_300/")
     rect_temp=cv2.imread(path0+file_name)
@@ -203,11 +239,19 @@ def found_rectlogo(db,path_main,image,file_name,alpha):
     y0=startY*alpha
     y1=endY*alpha
     rect0=rect_temp[y0:y1,x0:x1]
+    
+    # cv2.imwrite('./{}'.format(name),rect0)
+
+    
+    
     if rotate==1:
         im_pil0 = Image.fromarray(rect0)
         im_pil0=im_pil0.rotate(90, expand=1)
         rect0 = np.asarray(im_pil0)
-
+    if rotate==2:
+        im_pil0 = Image.fromarray(rect0)
+        im_pil0=im_pil0.rotate(270, expand=1)
+        rect0 = np.asarray(im_pil0)
 
 # For reversing the operation:
 
