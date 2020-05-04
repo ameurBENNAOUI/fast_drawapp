@@ -69,9 +69,9 @@ def check_file(db,url_path):
 
 
         alpha=7
-        converter_pdf(path_source,pdffilename,file_300,imgfilename,300)
+        converter_pdf(path_source,pdffilename,file_300,file_name,300)
 
-        resizer_img(file_300, imgfilename, file_200, imgfilename, alpha)
+        resizer_img(file_300, imgfilename, file_200, file_name, alpha)
         file_name_img=file_200+imgfilename
         image = cv2.imread(file_name_img)
        
